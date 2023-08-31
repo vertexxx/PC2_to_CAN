@@ -7,7 +7,7 @@ import urllib
 import urllib.request
 import json
 
-debug_readfromfile = 1
+debug_readfromfile = 0
 
 class TimerRepeater(object):
     def __init__(self, name, interval, target):
@@ -33,7 +33,7 @@ class TimerRepeater(object):
 
 class TimerWrite():
     PcanHandle = PCAN_USBBUS1
-    Bitrate = PCAN_BAUD_1M
+    Bitrate = PCAN_BAUD_500K
     TimerInterval = 10
     m_DLLFound = False
     sendcounter = 0
@@ -92,12 +92,131 @@ class TimerWrite():
                 with open(fileurl, mode="rb") as fileasbytes:
                     jsonbytes = fileasbytes.read()
             else:
-                r = urllib.request.urlopen(url)
-                jsonbytes = r.read().decode(r.info().get_param('charset') or 'utf-8')
+                try:
+                    r = urllib.request.urlopen(url)
+                    jsonbytes = r.read().decode(r.info().get_param('charset') or 'utf-8')
+                except:
+                    jsonbytes="{}"
             self.jsondata = json.loads(jsonbytes)
-            print(self.jsondata['carState']['mRpm'])
         #except:
         #    print('nope')
+        if self.sendcounter==0 or (self.sendcounter%50)==0:
+            print('#####################################Debugprint#################################')
+            try:
+                print('carState.mRpm            ',self.jsondata['carState']['mRpm'])
+                print('carState.mSpeed          ',self.jsondata['carState']['mSpeed'])
+                print('carState.mBrake          ',self.jsondata['carState']['mBrake'])
+                print('carState.mThrottle       ',self.jsondata['carState']['mThrottle'])
+                print('carState.mAntiLockActive ',self.jsondata['carState']['mAntiLockActive'])
+                print('carState.mSteering       ',self.jsondata['carState']['mSteering'])
+                print(' ')
+                print('gameStates.mGameState    ',self.jsondata['gameStates']['mGameState'])
+                print('gameStates.mSessionState ',self.jsondata['gameStates']['mSessionState'])
+                print('gameStates.mRaceState    ',self.jsondata['gameStates']['mRaceState'])
+                print(' ')
+                print('part.mPI.0.mIsActive     ',self.jsondata['participants']['mParticipantInfo'][0]['mIsActive'])
+                print(' ')
+                print('aX                       ',self.jsondata['motionAndDeviceRelated']['mLocalAcceleration'][0])
+                print('aY                       ',self.jsondata['motionAndDeviceRelated']['mLocalAcceleration'][1])
+                print('aZ                       ',self.jsondata['motionAndDeviceRelated']['mLocalAcceleration'][2])
+                print(' ')
+                print('aX_W                     ',self.jsondata['motionAndDeviceRelated']['mWorldAcceleration'][0])
+                print('aY_W                     ',self.jsondata['motionAndDeviceRelated']['mWorldAcceleration'][1])
+                print('aZ_W                     ',self.jsondata['motionAndDeviceRelated']['mWorldAcceleration'][2])
+                print(' ')
+                print('mAngularVelocity         ',self.jsondata['motionAndDeviceRelated']['mAngularVelocity'][0])
+                print('mAngularVelocity         ',self.jsondata['motionAndDeviceRelated']['mAngularVelocity'][1])
+                print('mAngularVelocity         ',self.jsondata['motionAndDeviceRelated']['mAngularVelocity'][2])
+                print(' ')
+                print('mSuspensionTravel        ',self.jsondata['wheelsAndTyres']['mSuspensionTravel'][3])
+                print(' ')
+                print('mTyreRPS                 ',self.jsondata['wheelsAndTyres']['mTyreRPS'][0])
+                print('mTyreRPS                 ',self.jsondata['wheelsAndTyres']['mTyreRPS'][1])
+                print('mTyreRPS                 ',self.jsondata['wheelsAndTyres']['mTyreRPS'][2])
+                print('mTyreRPS                 ',self.jsondata['wheelsAndTyres']['mTyreRPS'][3])
+                print(' ')
+                print('mTyreY                   ',self.jsondata['wheelsAndTyres']['mTyreY'][0])
+                print('mTyreY                   ',self.jsondata['wheelsAndTyres']['mTyreY'][1])
+                print('mTyreY                   ',self.jsondata['wheelsAndTyres']['mTyreY'][2])
+                print('mTyreY                   ',self.jsondata['wheelsAndTyres']['mTyreY'][3])
+                print(' ')
+                print('mTyreTemp                ',self.jsondata['wheelsAndTyres']['mTyreTemp'][0])
+                print('mTyreTemp                ',self.jsondata['wheelsAndTyres']['mTyreTemp'][1])
+                print('mTyreTemp                ',self.jsondata['wheelsAndTyres']['mTyreTemp'][2])
+                print('mTyreTemp                ',self.jsondata['wheelsAndTyres']['mTyreTemp'][3])
+                print(' ')
+                print('timestamp                ',self.jsondata['timestamp'])
+                print(' ')
+                print('mUnfilteredSteering      ',self.jsondata['unfilteredInput']['mUnfilteredSteering'])
+                print(' ')
+                print('weather.mAmbientTemp     ',self.jsondata['weather']['mAmbientTemperature'])
+                print('weather.mRainDensity     ',self.jsondata['weather']['mRainDensity'])
+                print('weather.mSnowDensity     ',self.jsondata['weather']['mSnowDensity'])
+            except:
+                print('API not fully available')
+
+    def getMsgBytes(self, hexid, returnbytes):
+        for i in range(8):
+            returnbytes[i] = 0
+        if hexid==0x50:
+            try:
+                returnbytes=self.writeSignalToBytes(returnbytes, 8, 0,1,0,self.jsondata['gameStates']['mGameState'])
+                returnbytes=self.writeSignalToBytes(returnbytes, 8, 8,1,0,self.jsondata['gameStates']['mSessionState'])
+                returnbytes=self.writeSignalToBytes(returnbytes, 8,16,1,0,self.jsondata['gameStates']['mRaceState'])
+                returnbytes=self.writeSignalToBytes(returnbytes, 8,24,1,0,self.jsondata['participants']['mParticipantInfo'][0]['mIsActive'])
+                returnbytes=self.writeSignalToBytes(returnbytes,32,32,1,0,self.jsondata['timestamp'])
+            except:
+                pass        
+        if hexid==0x51:
+            try:
+                returnbytes=self.writeSignalToBytes(returnbytes,16, 0,0.0039,-127.7874,self.jsondata['carState']['mSpeed'])
+                returnbytes=self.writeSignalToBytes(returnbytes,16,16,0.0039,-127.7874,self.jsondata['carState']['mSpeed'])
+                returnbytes=self.writeSignalToBytes(returnbytes,16,32,3.19598837574497e-5,-1.0471975511966,self.jsondata['carState']['mSteering']*360*1.3/13/180*3.14159)
+                returnbytes=self.writeSignalToBytes(returnbytes,14,48,3.19598837574497e-5,-0.26179987799149,0)
+            except:
+                pass
+        if hexid==0x52:
+            try:
+                returnbytes=self.writeSignalToBytes(returnbytes,16, 0,0.005,-163.84,self.jsondata['motionAndDeviceRelated']['mLocalAcceleration'][0])
+                returnbytes=self.writeSignalToBytes(returnbytes,16,16,0.005,-163.84,self.jsondata['motionAndDeviceRelated']['mLocalAcceleration'][1])
+                returnbytes=self.writeSignalToBytes(returnbytes,16,32,0.005,-163.84,self.jsondata['motionAndDeviceRelated']['mLocalAcceleration'][2])
+                returnbytes=self.writeSignalToBytes(returnbytes,16,48,0.000436252413289189,-14.2942465738336,self.jsondata['carState']['mSteering']*360*1.3/180*3.14159)
+            except:
+                pass
+        if hexid==0x53:
+            try:
+                returnbytes=self.writeSignalToBytes(returnbytes,16, 0,0.0039,-127.874,self.jsondata['wheelsAndTyres']['mTyreRPS'][0]*-1*(1/91*32))
+                returnbytes=self.writeSignalToBytes(returnbytes,16,16,0.0039,-127.874,self.jsondata['wheelsAndTyres']['mTyreRPS'][1]*-1*(1/91*32))
+                returnbytes=self.writeSignalToBytes(returnbytes,16,32,0.0039,-127.874,self.jsondata['wheelsAndTyres']['mTyreRPS'][2]*-1*(1/91*32))
+                returnbytes=self.writeSignalToBytes(returnbytes,16,48,0.0039,-127.874,self.jsondata['wheelsAndTyres']['mTyreRPS'][3]*-1*(1/91*32))
+            except:
+                pass
+        if hexid==0x54:
+            try:
+                returnbytes=self.writeSignalToBytes(returnbytes, 4, 0,1,0,0)
+                returnbytes=self.writeSignalToBytes(returnbytes, 8, 8,1,-25,self.jsondata['wheelsAndTyres']['mTyreTemp'][0]/12*8)
+                returnbytes=self.writeSignalToBytes(returnbytes, 8,16,1,-25,self.jsondata['wheelsAndTyres']['mTyreTemp'][1]/12*8)
+                returnbytes=self.writeSignalToBytes(returnbytes, 8,24,1,-25,self.jsondata['wheelsAndTyres']['mTyreTemp'][2]/12*8)
+                returnbytes=self.writeSignalToBytes(returnbytes, 8,32,1,-25,self.jsondata['wheelsAndTyres']['mTyreTemp'][3]/12*8)
+                returnbytes=self.writeSignalToBytes(returnbytes, 8,40,0.01,0,1.05)
+            except:
+                pass
+        return returnbytes
+            
+    def writeSignalToBytes(self,returnbytes,bitlength,bitoffset,sigfactor,sigoffset,signal):
+        #print(list(returnbytes))
+        tmpsignal=(float(signal)-sigoffset)*1/sigfactorx
+        #print(tmpsignal)
+        tmpsignal=int(tmpsignal)%(2**bitlength)
+        #print(tmpsignal)
+        tmpbytes=tmpsignal.to_bytes((tmpsignal.bit_length() + 7) // 8, "big")
+        #print(tmpbytes)
+        bofs = int((bitoffset-bitoffset%8)/8)
+        for i in range(len(tmpbytes)):
+            returnbytes[i+bofs]=returnbytes[i+bofs]|tmpbytes[len(tmpbytes)-1-i]
+        #print(list(returnbytes))
+        return returnbytes
+        
 
     def WriteMessages(self):
         self.updateJson()
@@ -108,8 +227,8 @@ class TimerWrite():
         stsResult = self.WriteMessage(0x54)
         stsResult = self.WriteMessage(0x55)
         self.sendcounter = self.sendcounter+1
-        #if (stsResult != PCAN_ERROR_OK):
-        #    self.ShowStatus(stsResult)
+        if (stsResult != PCAN_ERROR_OK):
+            self.ShowStatus(stsResult)
         #else:
         #    print("Message was successfully SENT")
 
@@ -117,11 +236,8 @@ class TimerWrite():
         msgCanMessage = TPCANMsg()
         msgCanMessage.ID = hexid
         msgCanMessage.LEN = 8
-        msgCanMessage.MSGTYPE = PCAN_MESSAGE_EXTENDED.value
-        if hexid==0x50:
-            for i in range(8):
-                msgCanMessage.DATA[i] = i
-                pass
+        msgCanMessage.MSGTYPE = PCAN_MESSAGE_STANDARD #PCAN_MESSAGE_EXTENDED.value
+        msgCanMessage.DATA=self.getMsgBytes(hexid,msgCanMessage.DATA)
         return self.m_objPCANBasic.Write(self.PcanHandle, msgCanMessage)
 
     def clear(self):
