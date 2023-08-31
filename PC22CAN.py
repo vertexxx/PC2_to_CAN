@@ -7,6 +7,8 @@ import urllib
 import urllib.request
 import json
 
+debug_readfromfile = 1
+
 class TimerRepeater(object):
     def __init__(self, name, interval, target):
         self._name = name
@@ -34,6 +36,8 @@ class TimerWrite():
     Bitrate = PCAN_BAUD_1M
     TimerInterval = 10
     m_DLLFound = False
+    sendcounter = 0
+    jsondata = []
 
     def __init__(self):
         self.ShowConfigurationHelp()
@@ -80,28 +84,44 @@ class TimerWrite():
             res = default
         return res
 
+    def updateJson(self):
+        url='http://127.0.0.1:8180/crest2/v1/api'
+        fileurl='api.json'
+        if 1:#try:
+            if debug_readfromfile:
+                with open(fileurl, mode="rb") as fileasbytes:
+                    jsonbytes = fileasbytes.read()
+            else:
+                r = urllib.request.urlopen(url)
+                jsonbytes = r.read().decode(r.info().get_param('charset') or 'utf-8')
+            self.jsondata = json.loads(jsonbytes)
+            print(self.jsondata['carState']['mRpm'])
+        #except:
+        #    print('nope')
+
     def WriteMessages(self):
-        stsResult = self.WriteMessage()
-        if (stsResult != PCAN_ERROR_OK):
-            self.ShowStatus(stsResult)
+        self.updateJson()
+        stsResult = self.WriteMessage(0x50)
+        stsResult = self.WriteMessage(0x51)
+        stsResult = self.WriteMessage(0x52)
+        stsResult = self.WriteMessage(0x53)
+        stsResult = self.WriteMessage(0x54)
+        stsResult = self.WriteMessage(0x55)
+        self.sendcounter = self.sendcounter+1
+        #if (stsResult != PCAN_ERROR_OK):
+        #    self.ShowStatus(stsResult)
         #else:
         #    print("Message was successfully SENT")
 
-    def WriteMessage(self):
-        url='http://127.0.0.1:8180/crest2/v1/api'
-        try:
-            r = urllib.request.urlopen(url)
-            data = json.loads(r.read().decode(r.info().get_param('charset') or 'utf-8'))
-            print(data['carState']['mRpm'])
-        except:
-            print('nope')
+    def WriteMessage(self, hexid):
         msgCanMessage = TPCANMsg()
-        msgCanMessage.ID = 0x100
+        msgCanMessage.ID = hexid
         msgCanMessage.LEN = 8
         msgCanMessage.MSGTYPE = PCAN_MESSAGE_EXTENDED.value
-        for i in range(8):
-            msgCanMessage.DATA[i] = i
-            pass
+        if hexid==0x50:
+            for i in range(8):
+                msgCanMessage.DATA[i] = i
+                pass
         return self.m_objPCANBasic.Write(self.PcanHandle, msgCanMessage)
 
     def clear(self):
