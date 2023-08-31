@@ -33,7 +33,7 @@ class TimerRepeater(object):
 
 class TimerWrite():
     PcanHandle = PCAN_USBBUS1
-    Bitrate = PCAN_BAUD_500K
+    Bitrate = PCAN_BAUD_1M
     TimerInterval = 10
     m_DLLFound = False
     sendcounter = 0
@@ -205,7 +205,7 @@ class TimerWrite():
             
     def writeSignalToBytes(self,returnbytes,bitlength,bitoffset,sigfactor,sigoffset,signal):
         #print(list(returnbytes))
-        tmpsignal=(float(signal)-sigoffset)*1/sigfactorx
+        tmpsignal=(float(signal)-sigoffset)*1/sigfactor
         #print(tmpsignal)
         tmpsignal=int(tmpsignal)%(2**bitlength)
         #print(tmpsignal)
@@ -226,6 +226,8 @@ class TimerWrite():
         stsResult = self.WriteMessage(0x53)
         stsResult = self.WriteMessage(0x54)
         stsResult = self.WriteMessage(0x55)
+        stsResult = self.WriteMessage(0x56)
+        stsResult = self.WriteMessage(0x57)
         self.sendcounter = self.sendcounter+1
         if (stsResult != PCAN_ERROR_OK):
             self.ShowStatus(stsResult)
