@@ -38,6 +38,7 @@ class TimerWrite():
     m_DLLFound = False
     sendcounter = 0
     jsondata = []
+    roadFric=1
 
     def __init__(self):
         self.ShowConfigurationHelp()
@@ -50,7 +51,6 @@ class TimerWrite():
             self.getInput("Press <Enter> to quit...")
             self.m_DLLFound = False
             return
-
         stsResult = self.m_objPCANBasic.Initialize(self.PcanHandle,self.Bitrate)
 
         if stsResult != PCAN_ERROR_OK:
@@ -166,23 +166,23 @@ class TimerWrite():
                 returnbytes=self.writeSignalToBytes(returnbytes, 8,24,1,0,self.jsondata['participants']['mParticipantInfo'][0]['mIsActive'])
                 returnbytes=self.writeSignalToBytes(returnbytes,32,32,1,0,self.jsondata['timestamp'])
             except:
-                pass        
+                print('Exception creating message for: ',hex(hexid))    
         if hexid==0x51:
             try:
                 returnbytes=self.writeSignalToBytes(returnbytes,16, 0,0.0039,-127.7874,self.jsondata['carState']['mSpeed'])
-                returnbytes=self.writeSignalToBytes(returnbytes,16,16,0.0039,-127.7874,self.jsondata['carState']['mSpeed'])
+                returnbytes=self.writeSignalToBytes(returnbytes,16,16,0.000174532925199433,-5.71909489293502,self.jsondata['motionAndDeviceRelated']['mAngularVelocity'][1])
                 returnbytes=self.writeSignalToBytes(returnbytes,16,32,3.19598837574497e-5,-1.0471975511966,self.jsondata['carState']['mSteering']*360*1.3/13/180*3.14159)
                 returnbytes=self.writeSignalToBytes(returnbytes,14,48,3.19598837574497e-5,-0.26179987799149,0)
             except:
-                pass
+                print('Exception creating message for: ',hex(hexid))
         if hexid==0x52:
             try:
                 returnbytes=self.writeSignalToBytes(returnbytes,16, 0,0.005,-163.84,self.jsondata['motionAndDeviceRelated']['mLocalAcceleration'][0])
-                returnbytes=self.writeSignalToBytes(returnbytes,16,16,0.005,-163.84,self.jsondata['motionAndDeviceRelated']['mLocalAcceleration'][1])
-                returnbytes=self.writeSignalToBytes(returnbytes,16,32,0.005,-163.84,self.jsondata['motionAndDeviceRelated']['mLocalAcceleration'][2])
+                returnbytes=self.writeSignalToBytes(returnbytes,16,16,0.005,-163.84,self.jsondata['motionAndDeviceRelated']['mLocalAcceleration'][2]*-1)
+                returnbytes=self.writeSignalToBytes(returnbytes,16,32,0.005,-163.84,self.jsondata['motionAndDeviceRelated']['mLocalAcceleration'][1]*-1-9.81)
                 returnbytes=self.writeSignalToBytes(returnbytes,16,48,0.000436252413289189,-14.2942465738336,self.jsondata['carState']['mSteering']*360*1.3/180*3.14159)
             except:
-                pass
+                print('Exception creating message for: ',hex(hexid))
         if hexid==0x53:
             try:
                 returnbytes=self.writeSignalToBytes(returnbytes,16, 0,0.0039,-127.874,self.jsondata['wheelsAndTyres']['mTyreRPS'][0]*-1*(1/91*32))
@@ -190,7 +190,7 @@ class TimerWrite():
                 returnbytes=self.writeSignalToBytes(returnbytes,16,32,0.0039,-127.874,self.jsondata['wheelsAndTyres']['mTyreRPS'][2]*-1*(1/91*32))
                 returnbytes=self.writeSignalToBytes(returnbytes,16,48,0.0039,-127.874,self.jsondata['wheelsAndTyres']['mTyreRPS'][3]*-1*(1/91*32))
             except:
-                pass
+                print('Exception creating message for: ',hex(hexid))
         if hexid==0x54:
             try:
                 returnbytes=self.writeSignalToBytes(returnbytes, 4, 0,1,0,0)
@@ -198,11 +198,68 @@ class TimerWrite():
                 returnbytes=self.writeSignalToBytes(returnbytes, 8,16,1,-25,self.jsondata['wheelsAndTyres']['mTyreTemp'][1]/12*8)
                 returnbytes=self.writeSignalToBytes(returnbytes, 8,24,1,-25,self.jsondata['wheelsAndTyres']['mTyreTemp'][2]/12*8)
                 returnbytes=self.writeSignalToBytes(returnbytes, 8,32,1,-25,self.jsondata['wheelsAndTyres']['mTyreTemp'][3]/12*8)
-                returnbytes=self.writeSignalToBytes(returnbytes, 8,40,0.01,0,1.05)
+                returnbytes=self.writeSignalToBytes(returnbytes, 8,40,0.01,0,self.estimateRoadFric())
             except:
-                pass
+                print('Exception creating message for: ',hex(hexid))
+        if hexid==0x55:
+            try:
+                returnbytes=self.writeSignalToBytes(returnbytes,12, 0,1,0,1500*0.55)
+                returnbytes=self.writeSignalToBytes(returnbytes, 3,12,1,0,0)
+                returnbytes=self.writeSignalToBytes(returnbytes,12,16,1,0,1500*0.45)
+                returnbytes=self.writeSignalToBytes(returnbytes, 3,28,1,0,self.jsondata['carState']['mAntiLockActive'])
+                returnbytes=self.writeSignalToBytes(returnbytes,12,32,1,0,self.jsondata['carState']['mBrake']*0.6*20475)
+                returnbytes=self.writeSignalToBytes(returnbytes, 3,44,1,0,0)
+                returnbytes=self.writeSignalToBytes(returnbytes, 4,48,1,0,1)
+                returnbytes=self.writeSignalToBytes(returnbytes, 3,52,1,0,0)
+                returnbytes=self.writeSignalToBytes(returnbytes, 8,56,1,0,self.jsondata['carState']['mThrottle']*100)
+            except:
+                print('Exception creating message for: ',hex(hexid))
+        if hexid==0x57:
+            try:
+                returnbytes=self.writeSignalToBytes(returnbytes, 8, 0,50,0,self.jsondata['carState']['mRpm'])
+                returnbytes=self.writeSignalToBytes(returnbytes, 8, 8,50,0,self.jsondata['carState']['mMaxRPM'])
+                returnbytes=self.writeSignalToBytes(returnbytes, 8,16,1, 0,self.jsondata['carState']['mBrake']*100)
+                returnbytes=self.writeSignalToBytes(returnbytes,16,32,0.005,-163.84,self.jsondata['wheelsAndTyres']['mSuspensionTravel'][3])
+            except:
+                print('Exception creating message for: ',hex(hexid))
+
         return returnbytes
-            
+
+        ####
+        # mTerrain
+        #   Straße:    0  1.1
+        #   Gras:      7  0.6
+        #   Erde:      19 0.6
+        #   Schotter:  50 0.55
+        #   Schnee     33 0.45
+        #   Eis        45 0.25
+        #   mRainDensity!=0  -0.3
+    def estimateRoadFric(self):
+        lroadFric=1
+        t=[1,1,1,1]
+        for i in range(len(t)):
+            if self.jsondata['wheelsAndTyres']['mTerrain'][i]==0:
+                t[i]=1.1
+            if self.jsondata['wheelsAndTyres']['mTerrain'][i]==7:
+                t[i]=0.6
+            if self.jsondata['wheelsAndTyres']['mTerrain'][i]==19:
+                t[i]=0.6
+            if self.jsondata['wheelsAndTyres']['mTerrain'][i]==50:
+                t[i]=0.55
+            if self.jsondata['wheelsAndTyres']['mTerrain'][i]==33:
+                t[i]=0.45
+            if self.jsondata['wheelsAndTyres']['mTerrain'][i]==45:
+                t[i]=0.25
+        lroadFric=min(t)*0.5+0.5*0.25*(t[1]+t[2]+t[3]+t[0])
+        if self.jsondata['weather']['mRainDensity']>0:
+            lroadFric=lroadFric-0.2
+        if self.jsondata['weather']['mSnowDensity']>0:
+            lroadFric=lroadFric-0.2
+        #mAmbientTemperature
+        self.roadFric = self.roadFric + (lroadFric-self.roadFric)*0.05
+        return self.roadFric
+
+
     def writeSignalToBytes(self,returnbytes,bitlength,bitoffset,sigfactor,sigoffset,signal):
         #print(list(returnbytes))
         tmpsignal=(float(signal)-sigoffset)*1/sigfactor
@@ -210,6 +267,12 @@ class TimerWrite():
         tmpsignal=int(tmpsignal)%(2**bitlength)
         #print(tmpsignal)
         tmpbytes=tmpsignal.to_bytes((tmpsignal.bit_length() + 7) // 8, "big")
+        if bitoffset%8 != 0:
+            if len(tmpbytes)>1:
+                print("Signal Shifting above uint8 not supported")
+            else:
+                if tmpbytes!=b'':
+                    tmpbytes[0]<<bitoffset%8
         #print(tmpbytes)
         bofs = int((bitoffset-bitoffset%8)/8)
         for i in range(len(tmpbytes)):
@@ -224,10 +287,10 @@ class TimerWrite():
         stsResult = self.WriteMessage(0x51)
         stsResult = self.WriteMessage(0x52)
         stsResult = self.WriteMessage(0x53)
-        stsResult = self.WriteMessage(0x54)
-        stsResult = self.WriteMessage(0x55)
-        stsResult = self.WriteMessage(0x56)
-        stsResult = self.WriteMessage(0x57)
+        if (self.sendcounter%5)==0:
+            stsResult = self.WriteMessage(0x54)
+            stsResult = self.WriteMessage(0x55)
+            stsResult = self.WriteMessage(0x57)
         self.sendcounter = self.sendcounter+1
         if (stsResult != PCAN_ERROR_OK):
             self.ShowStatus(stsResult)
