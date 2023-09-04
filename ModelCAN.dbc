@@ -36,11 +36,18 @@ BS_:
 BU_: SimBus RxModel
 
 
+BO_ 73 SWC_01: 8 RxModel
+ SG_ SWC_CtrUINT8 : 56|8@1+ (1,0) [0|255] "rad" Vector__XXX
+ SG_ SWC_Clas : 48|8@1+ (1,0) [0|255] "na" Vector__XXX
+ SG_ SWC_AgToeInOfs : 32|16@1+ (1.06526489E-007,-0.00349066) [-0.00349066|0.003490553456615] "rad" Vector__XXX
+ SG_ SWC_AgFf : 16|16@1+ (5.999E-006,-0.19659) [-0.19659|0.196554465] "rad" Vector__XXX
+ SG_ SWC_Ag : 0|16@1+ (5.999E-006,-0.19659) [-0.19659|0.196554465] "rad" Vector__XXX
+
 BO_ 87 STS_02: 8 SimBus
- SG_ RideHeiRe : 32|16@1+ (0.005,-163.84) [-163.84|163.835] "mps2" RxModel
- SG_ PrctBrkPed : 16|8@1+ (1,0) [0|255] "" RxModel
- SG_ EngineRPMmax : 8|8@1+ (50,0) [0|12750] "" RxModel
- SG_ EngineRPM : 0|8@1+ (50,0) [0|12750] "" RxModel
+ SG_ RideHeiRe : 32|16@1+ (0.005,-163.84) [-163.84|163.835] "mps2"  RxModel
+ SG_ PrctBrkPed : 16|8@1+ (1,0) [0|255] ""  RxModel
+ SG_ EngineRPMmax : 8|8@1+ (50,0) [0|12750] ""  RxModel
+ SG_ EngineRPM : 0|8@1+ (50,0) [0|12750] ""  RxModel
 
 BO_ 85 STS_01: 8 SimBus
  SG_ PrctDrvPed : 56|8@1+ (1,0) [0|255] ""  RxModel
@@ -59,7 +66,7 @@ BO_ 84 TIRE_01: 6 SimBus
  SG_ TTireReLe : 24|8@1+ (1,-25) [-25|230] "deg"  RxModel
  SG_ TTireFrRi : 16|8@1+ (1,-25) [-25|230] "deg"  RxModel
  SG_ TTireFrLe : 8|8@1+ (1,-25) [-25|230] "deg"  RxModel
- SG_ TireTyp : 0|4@1+ (1,0) [0|15] ""  RxModel
+ SG_ TireType : 0|4@1+ (1,0) [0|15] ""  RxModel
 
 BO_ 83 VEH_03: 8 SimBus
  SG_ VWhlSpdReRi : 48|16@1+ (0.0039,-127.7874) [-127.7874|127.7991] "mps"  RxModel
@@ -68,14 +75,14 @@ BO_ 83 VEH_03: 8 SimBus
  SG_ VWhlSpdFrLe : 0|16@1+ (0.0039,-127.7874) [-127.7874|127.7991] "mps"  RxModel
 
 BO_ 82 VEH_02: 8 SimBus
- SG_ AgStgWhlLWIOfsCmp : 48|16@1+ (0.000436252413289189,-14.2942465738336) [-14.2942465738336|14.2955553310734] "rad"  RxModel
- SG_ AVertOfsCmp : 32|16@1+ (0.005,-163.84) [-163.84|163.835] "mps2"  RxModel
- SG_ ALgtOfsCmp : 16|16@1+ (0.005,-163.84) [-163.84|163.835] "mps2"  RxModel
- SG_ ALatOfsCmp : 0|16@1+ (0.005,-163.84) [-163.84|163.835] "mps2"  RxModel
+ SG_ AgStgWhl : 48|16@1+ (0.000436252413289189,-14.2942465738336) [-14.2942465738336|14.2955553310734] "rad"  RxModel
+ SG_ AVert : 32|16@1+ (0.005,-163.84) [-163.84|163.835] "mps2"  RxModel
+ SG_ ALgt : 16|16@1+ (0.005,-163.84) [-163.84|163.835] "mps2"  RxModel
+ SG_ ALat : 0|16@1+ (0.005,-163.84) [-163.84|163.835] "mps2"  RxModel
 
 BO_ 81 VEH_01: 8 SimBus
- SG_ AgReWhlStgAxl : 48|14@1+ (3.19589083894344E-005,-0.261799387799149) [-0.261799387799149|0.261783408344955] ""  RxModel
- SG_ AgFrWhlStgAxlLWIOfsCmp : 32|16@1+ (3.19598837574497E-005,-1.0471975511966) [-1.0471975511966|1.04729343084787] "rad"  RxModel
+ SG_ Vy : 48|16@1+ (0.0039,-127.7874) [-127.7874|127.7991] "mps" Vector__XXX
+ SG_ AgFrWhlStgAxl : 32|16@1+ (3.19598837574497E-005,-1.0471975511966) [-1.0471975511966|1.04729343084787] "rad"  RxModel
  SG_ YawRate_radps : 16|16@1+ (0.000174532925199433,-5.71909489293502) [-5.71909489293502|5.71892036000982] "radps"  RxModel
  SG_ Vx : 0|16@1+ (0.0039,-127.7874) [-127.7874|127.7991] "mps"  RxModel
 
@@ -88,7 +95,7 @@ BO_ 80 PC2_01: 8 SimBus
 
 
 
-CM_ SG_ 84 TireTyp "0Winter
+CM_ SG_ 84 TireType "0Winter
 1Summer
 2AllSeason
 3Offroad
